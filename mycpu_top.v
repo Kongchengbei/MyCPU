@@ -1,3 +1,4 @@
+
 module mycpu_top(
     input  wire        clk,
     input  wire        resetn,
@@ -20,37 +21,35 @@ module mycpu_top(
     output wire [31:0] debug_wb_rf_wdata
 );
 
-wire reset;
-assign reset = ~resetn;
+    wire reset;
+    assign reset = ~resetn;
 
-    // allow_in
     wire ds_allowin;
     wire es_allowin;
     wire ms_allowin;
     wire ws_allowin;
 
-    // bus
     wire [63:0] fs_to_ds_bus;
     wire [150:0] ds_to_es_bus;
     wire [70:0] es_to_ms_bus;
-    wire [5:0] es_to_ds_bus;// 用于判断alter指令是否需要阻塞
-
+    //wire [5:0] es_to_ds_bus;
     wire [69:0] ms_to_ws_bus;
     wire [33:0] br_bus;
     wire [37:0] ws_to_ds_bus;
 
-    // valid
     wire fs_to_ds_valid;
     wire ds_to_es_valid;
     wire es_to_ms_valid;
     wire ms_to_ws_valid;
-    wire es_valid_out;// from exe_stageexe阶段当前是否有有效指令(传给id）)
-    wire inst_bl;
-    wire ms_valid; // MEM 阶段当前是否有有效指令
-    //dest
+    wire es_valid;
+    wire ms_valid;
+
     wire [4:0] es_to_ds_dest;
     wire [4:0] ms_to_ds_dest;
     wire [4:0] ws_to_ds_dest;
+    wire [31:0] es_forward_data;
+    wire [31:0] ms_forward_data;
+    wire [31:0] ms_final_result;
 
     if_stage u_if_stage(
         .clk(clk),
@@ -62,8 +61,8 @@ assign reset = ~resetn;
         .inst_sram_addr(inst_sram_addr),
         .inst_sram_wdata(inst_sram_wdata),
         .inst_sram_rdata(inst_sram_rdata),
-        .fs_to_ds_bus(fs_to_ds_bus),
-        .fs_to_ds_valid(fs_to_ds_valid)
+        .fs_to_ds_valid(fs_to_ds_valid),
+        .fs_to_ds_bus(fs_to_ds_bus)
     );
 
     id_stage u_id_stage(
@@ -73,18 +72,18 @@ assign reset = ~resetn;
         .fs_to_ds_valid(fs_to_ds_valid),
         .fs_to_ds_bus(fs_to_ds_bus),
         .ws_to_ds_bus(ws_to_ds_bus),
+        //.es_to_ds_bus(es_to_ds_bus),
+        .es_valid(es_valid),
         .es_to_ds_dest(es_to_ds_dest),
         .ms_to_ds_dest(ms_to_ds_dest),
         .ws_to_ds_dest(ws_to_ds_dest),
-        .es_to_ds_bus(es_to_ds_bus), // 用于判断alter指令是否需要阻塞
-        .es_valid(es_valid_out),// from exe_stageexe阶段当前是否有有效指令
+        .es_forward_data(es_forward_data),
+        .ms_forward_data(ms_forward_data),
+        .ms_valid(ms_valid),
         .ds_allowin(ds_allowin),
         .br_bus(br_bus),
-        .ds_to_es_bus(ds_to_es_bus),
         .ds_to_es_valid(ds_to_es_valid),
-        .es_forward_data   (es_alu_result), // EXE 阶段转发数据
-        .ms_forward_data   (ms_final_result),
-        .ms_valid          (ms_valid)
+        .ds_to_es_bus(ds_to_es_bus)
     );
 
     exe_stage u_exe_stage(
@@ -96,13 +95,14 @@ assign reset = ~resetn;
         .ds_to_es_bus(ds_to_es_bus),
         .es_to_ms_bus(es_to_ms_bus),
         .es_to_ms_valid(es_to_ms_valid),
+        .es_valid_out(es_valid),
+        .es_alu_result(es_forward_data),
+        //.es_to_ds_bus(es_to_ds_bus),
+        .es_to_ds_dest(es_to_ds_dest),
         .data_sram_en(data_sram_en),
         .data_sram_we(data_sram_we),
         .data_sram_addr(data_sram_addr),
-        .data_sram_wdata(data_sram_wdata),
-        .es_to_ds_bus(es_to_ds_bus), // 用于判断alter指令是否需要阻塞
-        .es_to_ds_dest(es_to_ds_dest), // 给 ID 阶段用：当前 EXE 的写寄存器编号
-        .es_valid_out(es_valid_out) // from exe_stageexe阶段当前是否有有效指令(传给id）
+        .data_sram_wdata(data_sram_wdata)
     );
 
     mem_stage u_mem_stage(
@@ -111,11 +111,14 @@ assign reset = ~resetn;
         .ws_allowin(ws_allowin),
         .ms_allowin(ms_allowin),
         .es_to_ms_bus(es_to_ms_bus),
-        .data_sram_rdata(data_sram_rdata),
         .es_to_ms_valid(es_to_ms_valid),
         .ms_to_ws_valid(ms_to_ws_valid),
-        .ms_to_ds_dest(ms_to_ds_dest), // 给 ID 阶段用：当前 MEM 的写寄存器编号 
-        .ms_to_ws_bus(ms_to_ws_bus)
+        .ms_to_ws_bus(ms_to_ws_bus),
+        .data_sram_rdata(data_sram_rdata),
+        .ms_to_ds_dest(ms_to_ds_dest),
+        .ms_forward_data(ms_forward_data),
+        .ms_final_result(ms_final_result),
+        .ms_valid(ms_valid)
     );
 
     wb_stage u_wb_stage(
@@ -125,7 +128,7 @@ assign reset = ~resetn;
         .ms_to_ws_valid(ms_to_ws_valid),
         .ms_to_ws_bus(ms_to_ws_bus),
         .ws_to_ds_bus(ws_to_ds_bus),
-        .ws_to_ds_dest(ws_to_ds_dest), // 给 ID 阶段用：当前 WB 的写寄存器编号
+        .ws_to_ds_dest(ws_to_ds_dest),
         .debug_wb_pc(debug_wb_pc),
         .debug_wb_rf_we(debug_wb_rf_we),
         .debug_wb_rf_wnum(debug_wb_rf_wnum),

@@ -1,70 +1,64 @@
 module mem_stage(
-    input         clk,
-    input         resetn,
-    input         ws_allowin,
-    output        ms_allowin,
-    input  [70:0] es_to_ms_bus,
-    input  [31:0] data_sram_rdata,
-    input         es_to_ms_valid,    
-    output        ms_to_ws_valid,
-    output [69:0] ms_to_ws_bus,
-    output wire [31:0] ms_final_result,
-    output wire        ms_valid,
-    output [4:0] ms_to_ds_dest // 给 ID 阶段用：当前 MEM 的写寄存器编号
+    input  wire        clk,
+    input  wire        resetn,              // 异步复位信号，低电平有效
+    input  wire        ws_allowin,          // WB 阶段是否允许接受数据
+    input  wire        ms_allowin,          // EXE 阶段是否允许向 MEM 阶段发送数据
+    input  wire [70:0] es_to_ms_bus,        // 从 EXE 阶段传来的数据总线
+    input  wire [31:0] data_sram_rdata,     // 从数据 SRAM 读取的数据
+    input  wire        es_to_ms_valid,      // 从 EXE 阶段传来的 valid 信号
+
+    output wire        ms_to_ws_valid,      // 传给 WB 阶段的 valid 信号
+    output wire [69:0] ms_to_ws_bus,        // 传给 WB 阶段的数据总线
+    output wire [4:0]  ms_to_ds_dest,       // 当前 MEM 阶段目的寄存器编号（供 ID 阶段 hazard 判断）
+    output  reg ms_valid,              // MEM 阶段是否有指令有效
+    output wire [31:0] ms_forward_data, // MEM 阶段的旁路数据（供 ID 阶段 hazard 判断）
+    output wire [31:0] ms_final_result      // MEM 阶段最终运算结果（供 EXE forward 使用）
 );
 
-    reg         ms_valid_r;
-    reg [31:0]  ms_pc;
-    reg         ms_res_from_mem;
-    reg         ms_gr_we;
-    reg [4:0]   ms_dest;
-    reg [31:0]  ms_alu_result;
+reg         ms_valid;
+reg [31:0]  ms_pc;
+reg         ms_gr_we;
+reg [4:0]   ms_dest;
+reg [31:0]  ms_alu_result;
+reg         ms_res_from_mem;
+reg [31:0]  ms_data_sram_rdata;
 
-    wire [31:0] ms_result;
-    wire [31:0] ms_final_result;
+wire        ms_ready_go;
+assign      ms_ready_go    = 1'b1;
+assign      ms_to_ws_valid = ms_valid && ms_ready_go;
+assign      ms_to_ds_dest  = ms_dest & {5{ms_valid}};
 
-    wire        ms_ready_go;
-    assign      ms_ready_go    = 1'b1;
-    assign      ms_allowin     = !ms_valid_r || (ms_ready_go && ws_allowin);
-    assign      ms_to_ws_valid = ms_valid_r && ms_ready_go;
-
-    always @(posedge clk or negedge resetn) begin
-        if (!resetn)
-            ms_valid_r <= 1'b0;
-        else if (ms_allowin)
-            ms_valid_r <= es_to_ms_valid;
-
-        if (!resetn) begin
-            ms_pc            <= 32'b0;
-            ms_gr_we         <= 1'b0;
-            ms_dest          <= 5'b0;
-            ms_alu_result    <= 32'b0;
-            ms_res_from_mem  <= 1'b0;
-        end
-        else if (es_to_ms_valid && ms_allowin) begin
-            {ms_pc,
-             ms_gr_we,
-             ms_dest,
-             ms_alu_result,
-             ms_res_from_mem} <= es_to_ms_bus;
-        end
+// MEM 阶段寄存器更新
+always @(posedge clk or negedge resetn) begin
+    if (!resetn) begin
+        ms_valid <= 1'b0;
+    end else if (ms_allowin) begin
+        ms_valid <= es_to_ms_valid;
     end
-    assign ms_to_ds_dest = ms_dest & {5{ms_valid_r}};// 给 ID 阶段用：当前 MEM 的写寄存器编号
-    assign ms_result         = data_sram_rdata;
-    assign ms_final_result   = ms_res_from_mem ? ms_result : ms_alu_result;
-    reg [69:0] ms_to_ws_bus_r;
-    always @(posedge clk or negedge resetn) begin
-        if (!resetn)
-            ms_to_ws_bus_r <= 70'b0;
-        else if (ms_to_ws_valid && ms_allowin)
-            ms_to_ws_bus_r <= {
-                ms_pc,
-                ms_gr_we,
-                ms_dest,
-                ms_final_result
-            };
-    end 
-    assign ms_to_ws_bus      = ms_to_ws_bus_r;
-    assign ms_final_result = ms_res_from_mem ? ms_result : ms_alu_result;
-    assign ms_valid        = ms_valid_r; 
+
+    if (es_to_ms_valid && ms_allowin) begin
+        {ms_pc,
+         ms_gr_we,
+         ms_dest,
+         ms_alu_result,
+         ms_res_from_mem} <= es_to_ms_bus;
+    end
+end
+
+// 保存从 SRAM 读出的数据
+always @(posedge clk) begin
+    if (es_to_ms_valid && ms_allowin) begin
+        ms_data_sram_rdata <= data_sram_rdata;
+    end
+end
+
+assign ms_final_result = ms_res_from_mem ? ms_data_sram_rdata : ms_alu_result;
+
+assign ms_to_ws_bus = {
+    ms_pc,               // 69:38
+    ms_gr_we,            // 37
+    ms_dest,             // 36:32
+    ms_final_result      // 31:0
+};
+
 endmodule
