@@ -128,15 +128,8 @@ regfile u_regfile(
     .wdata  (rf_wdata)
 );
 
-assign rj_value = (rj == es_to_ds_dest && es_valid) ? es_forward_data :
-                  (rj == ms_to_ds_dest && ms_valid) ? ms_forward_data :
-                  (rj == ws_to_ds_dest && rf_we)    ? rf_wdata :
-                  rf_rdata1;
-
-assign rkd_value = (src_reg_is_rd ? rd : rk) == es_to_ds_dest && es_valid ? es_forward_data :
-                   (src_reg_is_rd ? rd : rk) == ms_to_ds_dest && ms_valid ? ms_forward_data :
-                   (src_reg_is_rd ? rd : rk) == ws_to_ds_dest && rf_we    ? rf_wdata :
-                   rf_rdata2;
+assign rj_value  = rf_rdata1;
+assign rkd_value = rf_rdata2;
 
 wire src_no_rj = inst_b | inst_bl | inst_lu12i_w;
 wire src_no_rk = inst_slli_w | inst_srli_w | inst_srai_w | inst_addi_w | inst_ld_w | inst_st_w | inst_jirl |

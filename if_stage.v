@@ -25,13 +25,13 @@ module if_stage(
     wire        br_taken;
     wire [31:0] br_target;
     wire        br_stall;
-
     assign {br_stall, br_taken, br_target} = br_bus;
 
     assign seq_pc   = fs_pc + 32'h4;
     assign next_pc  = br_taken ? br_target : seq_pc;
-
-    assign fs_ready_go    = ~br_stall;
+    wire         pre_if_ready_go;
+    assign pre_if_read_go = ~br_taken;
+    assign to_fs_valid = ~reset && fs_ready_go;
     assign fs_allowin     = !fs_valid || (fs_ready_go && ds_allowin);
     assign fs_to_ds_valid = fs_valid && fs_ready_go;
 
@@ -47,12 +47,13 @@ module if_stage(
     always @(posedge clk or negedge resetn) begin
         if (!resetn)
             fs_pc <= 32'h1bfffffc; // trick: 使得复位后一拍指向 1c000000
-        else if (fs_allowin)
+        else if (to_fs_valid && (fs_allowin || br_taken)) begin
             fs_pc <= next_pc;
+        end
     end
 
     assign fs_inst         = inst_sram_rdata;
-    assign inst_sram_en    = fs_allowin || br_taken; // 保证跳转指令立即取指
+    assign inst_sram_en    = to_fs_valid && (fs_allowin || br_taken) && fs_ready_go;// 保证跳转指令立即取指
     assign inst_sram_we    = 4'b0;
     assign inst_sram_wdata = 32'b0;
     assign inst_sram_addr  = fs_pc;
