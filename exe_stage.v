@@ -12,8 +12,9 @@ module exe_stage(
     output [ 3:0] data_sram_we,
     output [31:0] data_sram_addr,
     output [31:0] data_sram_wdata,
-    output [ 4:0] es_dest_reg,
-    output es_load
+    output es_load,
+    output [37:0] es_fwd_bus,
+    output reg [4:0]  es_dest
 );
 
     reg  [31:0] es_pc;
@@ -26,7 +27,6 @@ module exe_stage(
     reg         es_res_from_mem;
     reg         es_gr_we;
     reg         es_mem_we;
-    reg  [ 4:0] es_dest;
     reg  [31:0] es_rj_value;
     reg  [31:0] es_rkd_value;
     reg  [31:0] es_imm;
@@ -47,7 +47,11 @@ module exe_stage(
                         es_res_from_mem// 0
     };
 
-    assign es_dest_reg = es_dest & {5{es_valid}};
+    assign es_fwd_bus = {
+    es_gr_we & es_valid,  // 1 bit，确保无效指令不前递
+    es_dest,              // 5 bit
+    alu_result            // 32 bit
+};
 
     always @(posedge clk) begin
         if (reset) begin
@@ -91,3 +95,10 @@ module exe_stage(
     assign data_sram_wdata = es_rkd_value;
 
 endmodule
+/* for exp 9:
+访存级结果的前递路径起点就是数据RAM返回结果
+和访存级缓存所存的ALU结果经过二选一之后的结果输出处
+(EXE 阶段的 ALU 输出（即这条指令刚算完）
+另有写回阶段
+
+*/

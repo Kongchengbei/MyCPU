@@ -8,7 +8,9 @@ module mem_stage(
     input  es_to_ms_valid, 
     output ms_to_ws_valid,
     output [69:0] ms_ws_bus,
-    output [ 4:0] ms_dest_reg
+    output [37:0] ms_fwd_bus,
+    output [4:0]  ms_dest
+
 );
 
 reg [31:0] ms_pc;
@@ -24,7 +26,6 @@ wire ms_ready_go;
 assign ms_ready_go    = 1'b1;
 assign ms_allow_in     = !ms_valid || ms_ready_go && ws_allow_in;
 assign ms_to_ws_valid = ms_valid && ms_ready_go;
-assign ms_dest_reg = ms_dest & {5{ms_valid}};
 
 always @(posedge clk) begin
     if (reset) begin
@@ -44,6 +45,12 @@ end
 
 assign ms_result = data_sram_rdata;
 assign ms_final_result = ms_res_from_mem ? ms_result : ms_alu_result;
+assign ms_fwd_bus = {
+    ms_gr_we & ms_valid,      // 1 bit
+    ms_dest,                  // 5 bit
+    ms_final_result           // 32 bit（load 或 ALU 的结果）
+};
+
 assign ms_ws_bus = {
     ms_pc,            // 69:38
     ms_gr_we,         // 37

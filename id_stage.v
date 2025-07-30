@@ -2,13 +2,16 @@ module id_stage(
   input  clk,
   input  reset,
   input  es_allow_in,
-  input  fs_to_ds_valid,
-  input  [63:0] fs_ds_bus,
+  input  fs_to_ds_valid,// IF 阶段到 ID 阶段的信号（是否为有效指令）
+  input  [63:0] fs_ds_bus,// IF 阶段到 ID 阶段的总线（PC + 指令）
   input  [37:0] ws_rf_bus,
   input  [ 4:0] es_dest,
   input  [ 4:0] ms_dest,
   input  [ 4:0] ws_dest,
   input  es_load,
+  input [37:0] es_fwd_bus,
+  input [37:0] ms_fwd_bus,
+  input [37:0] ws_fwd_bus,
   output ds_allow_in,
   output [33:0] br_bus,
   output [150:0] ds_es_bus,
@@ -88,11 +91,29 @@ assign rd = ds_inst[4:0];
 assign rj = ds_inst[9:5];
 assign rk = ds_inst[14:10];
 
+
+/*for exp 8阻塞信号
 wire same_rj = src_reg_is_rj && rj != 5'b0 && ((rj == es_dest) || (rj == ms_dest) || (rj == ws_dest));
 wire same_rk = src_reg_is_rk && rk != 5'b0 && ((rk == es_dest) || (rk == ms_dest) || (rk == ws_dest));
 wire same_rd = src_reg_is_rd && rd != 5'b0 && ((rd == es_dest) || (rd == ms_dest) || (rd == ws_dest));
-wire inst_no_dest_reg = inst_st_w | inst_b | inst_beq | inst_bne;
+
 wire block = same_rd || same_rj || same_rk;
+*/
+wire inst_no_dest_reg = inst_st_w | inst_b | inst_beq | inst_bne;
+wire        es_rf_we;
+wire [31:0] es_result;
+assign {es_rf_we, es_dest, es_result} = es_fwd_bus;
+
+wire        ms_rf_we;
+wire [4:0]  ms_dest;
+wire [31:0] ms_result;
+assign {ms_rf_we, ms_dest, ms_result} = ms_fwd_bus;
+
+wire        ws_rf_we;
+wire [4:0]  ws_dest;
+wire [31:0] ws_result;
+assign {ws_rf_we, ws_dest, ws_result} = ws_fwd_bus;
+
 
 assign i12 = ds_inst[21:10];
 assign i20 = ds_inst[24:5];
@@ -193,8 +214,16 @@ regfile u_regfile(
     .wdata  (rf_wdata )
 );
 
-assign rj_value  = rf_rdata1;
-assign rkd_value = rf_rdata2;
+assign rj_value  = 
+   (es_rf_we && (es_dest != 5'd0) && (es_dest == rj)) ? es_result :
+   (ms_rf_we && (ms_dest != 5'd0) && (ms_dest == rj)) ? ms_result :
+   (ws_rf_we && (ws_dest != 5'd0) && (ws_dest == rj)) ? ws_result :
+    rf_rdata1;//前递路径的寄存器堆读出值1
+assign rkd_value = 
+   (es_rf_we && (es_dest != 5'd0) && (es_dest == rf_raddr2)) ? es_result :
+    (ms_rf_we && (ms_dest != 5'd0) && (ms_dest == rf_raddr2)) ? ms_result :
+    (ws_rf_we && (ws_dest != 5'd0) && (ws_dest == rf_raddr2)) ? ws_result :
+    rf_rdata2;//前递路径的寄存器堆读出值2
 
 assign ds_es_bus = {
     ds_pc,         // 150:119
@@ -219,7 +248,14 @@ assign br_target = (inst_beq || inst_bne || inst_bl || inst_b) ? (ds_pc + br_off
 assign br_stall = br_taken && es_load && ds_valid;
 assign br_bus = {br_stall, br_taken, br_target};
 
-assign ds_ready_go = ~block;
+//assign ds_ready_go = ~block;
+wire raw_load_conflict =
+    es_load && es_rf_we &&
+    (es_dest != 5'd0) &&
+    ((es_dest == rj && src_reg_is_rj) || (es_dest == rk && src_reg_is_rk));
+
+assign ds_ready_go = ~raw_load_conflict;
+
 assign ds_allow_in = !ds_valid || (ds_ready_go && es_allow_in);
 assign ds_to_es_valid = ds_valid && ds_ready_go && !delay_slot;
 
@@ -238,3 +274,7 @@ always @(posedge clk) begin
 end
 
 endmodule
+/*for exp 9:
+写回级结果的前递路径起点就是写回级将要写入到寄存器堆中的结果处
+ID 阶段的寄存器堆读出后的位置
+*/

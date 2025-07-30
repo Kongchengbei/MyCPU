@@ -4,23 +4,25 @@ module mycpu_top(
     会有亚稳态问题（metastability）。
     所以用一个寄存器（reset）在时钟上升沿将其采样同步化*/
     input  wire        resetn,//resetn 通常来自外部按键或电路，是异步信号(不受clk限制）
-    // inst sram interface
-    output wire        inst_sram_en,
-    output wire [ 3:0] inst_sram_we,
-    output wire [31:0] inst_sram_addr,
-    output wire [31:0] inst_sram_wdata,
-    input  wire [31:0] inst_sram_rdata,
+    // inst sram interface 指令存储接口（instruction SRAM）
+    output wire        inst_sram_en,//使能信号，为 1 时表示要发起一个取指请求
+    output wire [ 3:0] inst_sram_we,//写使能信号，若全为0表示只读（用于取指），不为零表示要写入数据
+    output wire [31:0] inst_sram_addr,//请求访问的地址，通常为PC
+    output wire [31:0] inst_sram_wdata,//写入数据，通常为指令（取指阶段通常不使用）
+    input  wire [31:0] inst_sram_rdata,//从SRAM读出指令数据，送给IF/ID寄存器解码器
     // data sram interface
-    output wire        data_sram_en,
-    output wire [ 3:0] data_sram_we,
-    output wire [31:0] data_sram_addr,
-    output wire [31:0] data_sram_wdata,
-    input  wire [31:0] data_sram_rdata,
+    output wire        data_sram_en,//数据访问使能，为 1 时表示要发起一个数据访问请求
+    output wire [ 3:0] data_sram_we,//数据写使能信号，若全为0表示只读（用于读数据），不为零表示要写入数据
+    output wire [31:0] data_sram_addr,//要访问的内存地址
+    output wire [31:0] data_sram_wdata,//要写入的数据
+    input  wire [31:0] data_sram_rdata,//从SRAM（内存）读出的数据（如lw的结果）
+    
     // trace debug interface
     output wire [31:0] debug_wb_pc,
     output wire [ 3:0] debug_wb_rf_we,
     output wire [ 4:0] debug_wb_rf_wnum,
     output wire [31:0] debug_wb_rf_wdata
+    
 );
 //异步低电平有效复位信号（resetn），同步地转化为同步高电平有效复位信号（reset）
 reg         reset;
@@ -54,6 +56,11 @@ wire es_load;
 wire [4:0] es_dest;
 wire [4:0] ms_dest;
 wire [4:0] ws_dest;
+// Forwarding bus(前递总线)
+wire [37:0] es_fwd_bus;
+wire [37:0] ms_fwd_bus;
+wire [37:0] ws_fwd_bus;
+
 
 if_stage fs(
     .clk(clk),
@@ -84,7 +91,10 @@ id_stage ds(
    .es_dest(es_dest),
    .ws_dest(ws_dest),
    .ms_dest(ms_dest),
-   .es_load(es_load)
+   .es_load(es_load),
+   .es_fwd_bus    (es_fwd_bus    ),
+   .ms_fwd_bus    (ms_fwd_bus    ),
+   .ws_fwd_bus    (ws_fwd_bus    )
 );
 
 exe_stage es(
@@ -101,8 +111,9 @@ exe_stage es(
     .data_sram_we(data_sram_we),
     .data_sram_addr(data_sram_addr),
     .data_sram_wdata(data_sram_wdata),
-    .es_dest_reg(es_dest),
-    .es_load(es_load)
+    .es_dest(es_dest),
+    .es_load(es_load),
+    .es_fwd_bus(es_fwd_bus)
 );
 
 mem_stage ms(
@@ -115,7 +126,8 @@ mem_stage ms(
     .es_to_ms_valid(es_to_ms_valid),    
     .ms_to_ws_valid(ms_to_ws_valid),
     .ms_ws_bus(ms_ws_bus),
-    .ms_dest_reg(ms_dest)
+    .ms_dest(ms_dest),
+    .ms_fwd_bus(ms_fwd_bus)
 );
 
 wb_stage ws(
@@ -129,7 +141,8 @@ wb_stage ws(
     .debug_wb_rf_we(debug_wb_rf_we),
     .debug_wb_rf_wnum(debug_wb_rf_wnum),
     .debug_wb_rf_wdata(debug_wb_rf_wdata),
-    .ws_dest_reg(ws_dest)
+    .ws_dest(ws_dest),
+    .ws_fwd_bus(ws_fwd_bus)
 );
 
 endmodule
