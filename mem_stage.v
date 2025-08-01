@@ -9,10 +9,13 @@ module mem_stage(
     output ms_to_ws_valid,
     output [69:0] ms_ws_bus,
     output [37:0] ms_fwd_bus,
-    output [4:0]  ms_dest
+    output [4:0]  ms_dest,
+//仲裁
+    input is_mem_read
+
 
 );
-
+wire mem_stall;
 reg [31:0] ms_pc;
 reg ms_res_from_mem;
 reg ms_gr_we;
@@ -57,5 +60,5 @@ assign ms_ws_bus = {
     ms_dest,          // 36:32
     ms_final_result   // 31:0
 };
-
+assign mem_stall = ~is_mem_read;
 endmodule
