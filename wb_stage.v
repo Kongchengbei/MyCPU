@@ -6,10 +6,12 @@ module wb_stage(
   input  wire [69:0] ms_ws_bus,
   output wire [4:0] ws_dest,
   output wire [37:0] ws_rf_bus,
+/*
   output wire [31:0] debug_wb_pc,
   output wire [ 3:0] debug_wb_rf_we,
   output wire [ 4:0] debug_wb_rf_wnum,
   output wire [31:0] debug_wb_rf_wdata,
+*/
   output wire [37:0] ws_fwd_bus
 );
 
@@ -50,11 +52,12 @@ assign ws_fwd_bus = {
     ws_dest,              // 写寄存器号
     ws_final_result             // 写回结果（ALU or Load）
 } ;
+/*
   assign debug_wb_pc       = rf_we ? ws_pc : 32'h0;
   assign debug_wb_rf_we    = {4{rf_we}};
   assign debug_wb_rf_wnum  = ws_valid && rf_we ? ws_dest : 5'h0;
   assign debug_wb_rf_wdata = ws_valid && rf_we ? ws_final_result : 32'h0;
-
+*/
 endmodule
 
 
