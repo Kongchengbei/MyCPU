@@ -27,7 +27,7 @@ module mycpu_top(
     //仲裁
     inout wire[31:0] base_ram_data,  //BaseRAM数据，低8位与CPLD串口控制器共享
     output wire[19:0] base_ram_addr, //BaseRAM地址
-    output wire[3:0] base_ram_be_n,  //BaseRAM字节使能，低有效。如果不使用字节使能，请保持为0
+    //output wire[3:0] base_ram_be_n,  //BaseRAM字节使能，低有效。如果不使用字节使能，请保持为0
     output wire base_ram_ce_n,       //BaseRAM片选，低有效
     output wire base_ram_oe_n,       //BaseRAM读使能，低有效
     output wire base_ram_we_n,       //BaseRAM写使能，低有效
@@ -201,13 +201,13 @@ z_stage z_stage(
     .is_mem_read(is_mem_read),
     .is_if_read(is_if_read),
     //Baseram
-    .base_en(base_ram_be_n),
+    .base_en(base_ram_oe_n),
     .base_we(base_ram_we_n),
     .base_addr(base_ram_addr),
     .base_wdata(base_ram_data),
     .base_rdata(base_ram_rdata),
     //Extram
-    .ext_en(ext_ram_be_n),
+    .ext_en(ext_ram_oe_n),
     .ext_we(ext_ram_we_n),
     .ext_addr(ext_ram_addr),
     .ext_wdata(ext_ram_data),
