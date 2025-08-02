@@ -95,6 +95,8 @@ wire is_mem_read; //仲裁器是否允许访问内存
 //核之间传递的信号
 wire [31:0] data_sram_rdata;
 wire [31:0] data_sram_wdata;
+wire [31:0] data_sram_addr;
+wire [31:0] data_sram_en;
 wire [31:0] inst_sram_rdata;
 wire [31:0] inst_sram_wdata;
 wire [31:0] inst_sram_addr;
