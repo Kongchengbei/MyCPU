@@ -92,6 +92,15 @@ wire [37:0] ws_fwd_bus;
 
 wire is_if_read; //仲裁器是否允许取指
 wire is_mem_read; //仲裁器是否允许访问内存
+//核之间传递的信号
+wire [31:0] data_sram_rdata;
+wire [31:0] data_sram_wdata;
+wire [31:0] inst_sram_rdata;
+wire [31:0] inst_sram_wdata;
+wire [31:0] inst_sram_addr;
+wire [31:0] inst_sram_en;
+wire [31:0] inst_sram_we;
+
 if_stage fs(
     .clk(clk),
     .reset(reset),
@@ -195,8 +204,9 @@ z_stage z_stage(
     .data_sram_en(data_sram_en),
     .data_sram_we(data_sram_we),
     .data_sram_addr(data_sram_addr),    
-    .data_sram_wdata(ext_ram_data), 
-    .data_sram_rdata(ext_ram_data),
+    .data_sram_wdata(data_sram_wdata), 
+    .data_sram_rdata(data_sram_rdata),
+
     //out
     .is_mem_read(is_mem_read),
     .is_if_read(is_if_read),
