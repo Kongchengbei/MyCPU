@@ -164,5 +164,34 @@ wb_stage ws(
     .ws_dest(ws_dest),
     .ws_fwd_bus(ws_fwd_bus)
 );
+z_stage z_stage(
+    .clk(clk),
+    .reset(reset),
+    //if
+    .inst_sram_en(inst_sram_en),
+    .inst_sram_addr(inst_sram_addr),
+    .inst_sram_rdata(inst_sram_rdata),
+    //mem
+    .data_sram_en(data_sram_en),
+    .data_sram_we(data_sram_we),
+    .data_sram_addr(data_sram_addr),    
+    .data_sram_wdata(data_sram_wdata), 
+    .data_sram_rdata(data_sram_rdata),
+    //out
+    .is_mem_read(is_mem_read),
+    .is_if_read(is_if_read),
+    //Baseram
+    .base_en(base_en),
+    .base_we(base_we),
+    .base_addr(base_addr),
+    .base_wdata(base_wdata),
+    .base_rdata(base_rdata),
+    //Extram
+    .ext_en(ext_en),
+    .ext_we(ext_we),
+    .ext_addr(ext_addr),
+    .ext_wdata(ext_wdata),
+    .ext_rdata(ext_rdata)
+);
 //在top和仲裁器之间加一个分区
 endmodule
