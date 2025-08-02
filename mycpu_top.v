@@ -27,7 +27,7 @@ module mycpu_top(
     //仲裁
     inout wire[31:0] base_ram_data,  //BaseRAM数据，低8位与CPLD串口控制器共享
     output wire[19:0] base_ram_addr, //BaseRAM地址
-    //output wire[3:0] base_ram_be_n,  //BaseRAM字节使能，低有效。如果不使用字节使能，请保持为0
+    output wire[3:0] base_ram_be_n,  //BaseRAM字节使能，低有效。如果不使用字节使能，请保持为0
     output wire base_ram_ce_n,       //BaseRAM片选，低有效
     output wire base_ram_oe_n,       //BaseRAM读使能，低有效
     output wire base_ram_we_n,       //BaseRAM写使能，低有效
@@ -56,7 +56,9 @@ module mycpu_top(
 //异步低电平有效复位信号（resetn），同步地转化为同步高电平有效复位信号（reset）
 reg         reset;
 always @(posedge clk) reset <= ~reset_btn; //resetn:低电平复位有效信号
-
+//字节使能
+assign base_ram_be_n = 4'b0000; //BaseRAM字节使能，低有效
+assign ext_ram_be_n = 4'b0000; //ExtRAM字节使能，低有效
 // allow_in
 wire ds_allow_in;
 wire es_allow_in;
