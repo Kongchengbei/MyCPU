@@ -4,7 +4,7 @@ module mycpu_top(
     会有亚稳态问题（metastability）。
     所以用一个寄存器（reset）在时钟上升沿将其采样同步化*/
     input  wire        resetn,//resetn 通常来自外部按键或电路，是异步信号(不受clk限制）
-    // inst sram interface 指令存储接口（instruction SRAM）
+ /*   // inst sram interface 指令存储接口（instruction SRAM）
     output wire        inst_sram_en,//使能信号，为 1 时表示要发起一个取指请求
     output wire [ 3:0] inst_sram_we,//写使能信号，若全为0表示只读（用于取指），不为零表示要写入数据
     output wire [31:0] inst_sram_addr,//请求访问的地址，通常为PC
@@ -16,24 +16,40 @@ module mycpu_top(
     output wire [31:0] data_sram_addr,//要访问的内存地址
     output wire [31:0] data_sram_wdata,//要写入的数据
     input  wire [31:0] data_sram_rdata,//从SRAM（内存）读出的数据（如lw的结果）
-    
+*/  
     // trace debug interface
     output wire [31:0] debug_wb_pc,
     output wire [ 3:0] debug_wb_rf_we,
     output wire [ 4:0] debug_wb_rf_wnum,
     output wire [31:0] debug_wb_rf_wdata,
     //仲裁
+    inout wire[31:0] base_ram_data,  //BaseRAM数据，低8位与CPLD串口控制器共享
+    output wire[19:0] base_ram_addr, //BaseRAM地址
+    output wire[3:0] base_ram_be_n,  //BaseRAM字节使能，低有效。如果不使用字节使能，请保持为0
+    output wire base_ram_ce_n,       //BaseRAM片选，低有效
+    output wire base_ram_oe_n,       //BaseRAM读使能，低有效
+    output wire base_ram_we_n,       //BaseRAM写使能，低有效
+    /*
     input reg base_en,
     input reg base_we,
     input reg [31:0] base_addr,
     input reg [31:0] base_wdata,
     output wire [31:0] base_rdata,
+    */
     //外部RAM
+    inout wire[31:0] ext_ram_data,  //ExtRAM数据
+    output wire[19:0] ext_ram_addr, //ExtRAM地址
+    output wire[3:0] ext_ram_be_n,  //ExtRAM字节使能，低有效。如果不使用字节使能，请保持为0
+    output wire ext_ram_ce_n,       //ExtRAM片选，低有效
+    output wire ext_ram_oe_n,       //ExtRAM读使能，低有效
+    output wire ext_ram_we_n,       //ExtRAM写使能，低有效
+    /*
     input reg ext_en,
     input reg ext_we,
     input reg [31:0] ext_addr,
     input reg [31:0] ext_wdata,
     output wire [31:0] ext_rdata
+    */
 );
 //异步低电平有效复位信号（resetn），同步地转化为同步高电平有效复位信号（reset）
 reg         reset;
@@ -175,23 +191,23 @@ z_stage z_stage(
     .data_sram_en(data_sram_en),
     .data_sram_we(data_sram_we),
     .data_sram_addr(data_sram_addr),    
-    .data_sram_wdata(data_sram_wdata), 
-    .data_sram_rdata(data_sram_rdata),
+    .data_sram_wdata(ext_ram_data), 
+    .data_sram_rdata(ext_ram_data),
     //out
     .is_mem_read(is_mem_read),
     .is_if_read(is_if_read),
     //Baseram
-    .base_en(base_en),
-    .base_we(base_we),
-    .base_addr(base_addr),
-    .base_wdata(base_wdata),
-    .base_rdata(base_rdata),
+    .base_en(base_ram_en),
+    .base_we(base_ram_we),
+    .base_addr(base_ram_addr),
+    .base_wdata(base_ram_data),
+    .base_rdata(base_ram_rdata),
     //Extram
-    .ext_en(ext_en),
-    .ext_we(ext_we),
-    .ext_addr(ext_addr),
-    .ext_wdata(ext_wdata),
-    .ext_rdata(ext_rdata)
+    .ext_en(ext_ram_en),
+    .ext_we(ext_ram_we),
+    .ext_addr(ext_ram_addr),
+    .ext_wdata(ext_ram_data),
+    .ext_rdata(ext_ram_data)
 );
 //在top和仲裁器之间加一个分区
 endmodule
