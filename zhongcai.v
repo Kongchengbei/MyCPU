@@ -15,8 +15,8 @@ module z_stage(
 
 //out
     //output is_write,
-    output is_mem_read,
-    output is_if_read,
+    output wire is_mem_read,
+    output wire is_if_read,
 
 //Baseram
 output reg base_en,
@@ -34,9 +34,6 @@ input wire [31:0] ext_rdata,
 
 );
 
-reg read_ready_go;//是否有读请求
-reg [31:0] ready_addr; //当前准备处理的地址
-reg from_if;//挂起请求是否来自if
 //成立状态，阻塞需要取反
 wire is_write     = data_sram_en && (|data_sram_we);
 assign is_mem_read  = ~is_write && data_sram_en && ~(|data_sram_we);
