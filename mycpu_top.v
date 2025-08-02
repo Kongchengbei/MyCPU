@@ -3,7 +3,7 @@ module mycpu_top(
     /*异步信号如果直接进入同步时序逻辑，
     会有亚稳态问题（metastability）。
     所以用一个寄存器（reset）在时钟上升沿将其采样同步化*/
-    input  wire        resetn,//resetn 通常来自外部按键或电路，是异步信号(不受clk限制）
+    input  wire        reset_btn,//resetn 通常来自外部按键或电路，是异步信号(不受clk限制）
  /*   // inst sram interface 指令存储接口（instruction SRAM）
     output wire        inst_sram_en,//使能信号，为 1 时表示要发起一个取指请求
     output wire [ 3:0] inst_sram_we,//写使能信号，若全为0表示只读（用于取指），不为零表示要写入数据
@@ -55,7 +55,7 @@ module mycpu_top(
 );
 //异步低电平有效复位信号（resetn），同步地转化为同步高电平有效复位信号（reset）
 reg         reset;
-always @(posedge clk) reset <= ~resetn; //resetn:低电平复位有效信号
+always @(posedge clk) reset <= ~reset_btn; //resetn:低电平复位有效信号
 
 // allow_in
 wire ds_allow_in;
