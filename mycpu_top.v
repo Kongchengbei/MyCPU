@@ -21,7 +21,7 @@ module mycpu_top(
     output wire [31:0] debug_wb_pc,
     output wire [ 3:0] debug_wb_rf_we,
     output wire [ 4:0] debug_wb_rf_wnum,
-    output wire [31:0] debug_wb_rf_wdata
+    output wire [31:0] debug_wb_rf_wdata,
     //仲裁
     input reg base_en,
     input reg base_we,
@@ -72,7 +72,8 @@ wire [37:0] es_fwd_bus;
 wire [37:0] ms_fwd_bus;
 wire [37:0] ws_fwd_bus;
 
-
+wire is_if_read; //仲裁器是否允许取指
+wire is_mem_read; //仲裁器是否允许访问内存
 if_stage fs(
     .clk(clk),
     .reset(reset),
@@ -84,7 +85,8 @@ if_stage fs(
     .inst_sram_wdata(inst_sram_wdata),
     .inst_sram_rdata(inst_sram_rdata),
     .fs_ds_bus(fs_ds_bus),
-    .fs_to_ds_valid(fs_to_ds_valid)
+    .fs_to_ds_valid(fs_to_ds_valid),
+    .is_if_read(is_if_read)
 );
 
 id_stage ds(
@@ -138,7 +140,14 @@ mem_stage ms(
     .ms_to_ws_valid(ms_to_ws_valid),
     .ms_ws_bus(ms_ws_bus),
     .ms_dest(ms_dest),
-    .ms_fwd_bus(ms_fwd_bus)
+    .ms_fwd_bus(ms_fwd_bus),
+    .is_mem_read(is_mem_read),
+    .data_sram_en(data_sram_en),
+    .data_sram_we(data_sram_we),
+    .data_sram_addr(data_sram_addr),
+    .data_sram_wdata(data_sram_wdata),
+    .inst_sram_rdata(inst_sram_rdata)
+
 );
 
 wb_stage ws(
