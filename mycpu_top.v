@@ -201,14 +201,14 @@ z_stage z_stage(
     .is_mem_read(is_mem_read),
     .is_if_read(is_if_read),
     //Baseram
-    .base_en(base_ram_en),
-    .base_we(base_ram_we),
+    .base_en(base_ram_be_n),
+    .base_we(base_ram_we_n),
     .base_addr(base_ram_addr),
     .base_wdata(base_ram_data),
     .base_rdata(base_ram_rdata),
     //Extram
-    .ext_en(ext_ram_en),
-    .ext_we(ext_ram_we),
+    .ext_en(ext_ram_be_n),
+    .ext_we(ext_ram_we_n),
     .ext_addr(ext_ram_addr),
     .ext_wdata(ext_ram_data),
     .ext_rdata(ext_ram_data)
