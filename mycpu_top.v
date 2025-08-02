@@ -1,5 +1,5 @@
 module mycpu_top(
-    input  wire        clk,
+    input  wire        clk_50M,
     /*异步信号如果直接进入同步时序逻辑，
     会有亚稳态问题（metastability）。
     所以用一个寄存器（reset）在时钟上升沿将其采样同步化*/
@@ -97,6 +97,7 @@ wire [31:0] data_sram_rdata;
 wire [31:0] data_sram_wdata;
 wire [31:0] data_sram_addr;
 wire [31:0] data_sram_en;
+wire [ 3:0] data_sram_we;
 wire [31:0] inst_sram_rdata;
 wire [31:0] inst_sram_wdata;
 wire [31:0] inst_sram_addr;
@@ -213,12 +214,14 @@ z_stage z_stage(
     .is_mem_read(is_mem_read),
     .is_if_read(is_if_read),
     //Baseram
+    .base_ram_ce_n(base_ram_ce_n),
     .base_en(base_ram_oe_n),
     .base_we(base_ram_we_n),
     .base_addr(base_ram_addr),
     .base_wdata(base_ram_data),
     .base_rdata(base_ram_rdata),
     //Extram
+    .ext_ram_ce_n(ext_ram_ce_n),
     .ext_en(ext_ram_oe_n),
     .ext_we(ext_ram_we_n),
     .ext_addr(ext_ram_addr),

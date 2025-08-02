@@ -19,6 +19,7 @@ module z_stage(
     output wire is_if_read,
 
 //Baseram
+output wire base_ram_ce_n, //BaseRAM片选，低有效
 output reg base_en,
 output reg base_we,
 output reg [31:0] base_addr,
@@ -26,6 +27,7 @@ output reg [31:0] base_wdata,
 input wire [31:0] base_rdata,
 
 //Extram
+output wire ext_ram_ce_n, //ExtRAM片选，低有效
 output reg ext_en,
 output reg ext_we,
 output reg [31:0] ext_addr,
