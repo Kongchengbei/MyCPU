@@ -175,10 +175,12 @@ wb_stage ws(
     .ms_to_ws_valid(ms_to_ws_valid),
     .ms_ws_bus(ms_ws_bus),
     .ws_rf_bus(ws_rf_bus),
+/*
     .debug_wb_pc(debug_wb_pc),
     .debug_wb_rf_we(debug_wb_rf_we),
     .debug_wb_rf_wnum(debug_wb_rf_wnum),
     .debug_wb_rf_wdata(debug_wb_rf_wdata),
+*/
     .ws_dest(ws_dest),
     .ws_fwd_bus(ws_fwd_bus)
 );
