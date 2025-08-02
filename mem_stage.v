@@ -16,7 +16,7 @@ module mem_stage(
     output wire [3:0] data_sram_we,
     output wire [31:0] data_sram_addr,
     output wire [31:0] data_sram_wdata,
-    input wire [31:0] inst_sram_rdata,
+    input wire [31:0] inst_sram_rdata
 
 
 );

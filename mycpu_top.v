@@ -44,7 +44,7 @@ module mycpu_top(
     output wire[3:0] ext_ram_be_n,  //ExtRAM字节使能，低有效。如果不使用字节使能，请保持为0
     output wire ext_ram_ce_n,       //ExtRAM片选，低有效
     output wire ext_ram_oe_n,       //ExtRAM读使能，低有效
-    output wire ext_ram_we_n,       //ExtRAM写使能，低有效
+    output wire ext_ram_we_n       //ExtRAM写使能，低有效
     /*
     input reg ext_en,
     input reg ext_we,
