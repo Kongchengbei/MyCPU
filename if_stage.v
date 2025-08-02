@@ -48,7 +48,7 @@ end
 
 always @(posedge clk) begin
     if (reset) begin
-        fs_pc <= 32'h1bfffffc;
+        fs_pc <= 32'h7FFFFFFC;
     end else if (to_fs_valid && fs_allow_in) begin
         fs_pc <= nextpc;
     end
