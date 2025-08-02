@@ -11,7 +11,12 @@ module mem_stage(
     output [37:0] ms_fwd_bus,
     output [4:0]  ms_dest,
 //仲裁
-    input is_mem_read
+    input is_mem_read,
+    output wire data_sram_en,
+    output wire [3:0] data_sram_we,
+    output wire [31:0] data_sram_addr,
+    output wire [31:0] data_sram_wdata,
+    input wire [31:0] inst_sram_rdata,
 
 
 );

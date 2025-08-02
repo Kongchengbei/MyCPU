@@ -22,7 +22,18 @@ module mycpu_top(
     output wire [ 3:0] debug_wb_rf_we,
     output wire [ 4:0] debug_wb_rf_wnum,
     output wire [31:0] debug_wb_rf_wdata
-    
+    //仲裁
+    input reg base_en,
+    input reg base_we,
+    input reg [31:0] base_addr,
+    input reg [31:0] base_wdata,
+    output wire [31:0] base_rdata,
+    //外部RAM
+    input reg ext_en,
+    input reg ext_we,
+    input reg [31:0] ext_addr,
+    input reg [31:0] ext_wdata,
+    output wire [31:0] ext_rdata
 );
 //异步低电平有效复位信号（resetn），同步地转化为同步高电平有效复位信号（reset）
 reg         reset;
