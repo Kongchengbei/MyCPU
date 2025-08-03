@@ -1,5 +1,5 @@
 module mycpu_top(
-    input  wire        clk_50M,
+    input  wire        clk_11M0592,
     /*异步信号如果直接进入同步时序逻辑，
     会有亚稳态问题（metastability）。
     所以用一个寄存器（reset）在时钟上升沿将其采样同步化*/
