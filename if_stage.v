@@ -13,7 +13,7 @@ module if_stage(
 //仲裁
     input is_if_read
 );
-wire if_stall;//仲裁器阻塞
+//wire if_stall;//仲裁器阻塞
 wire br_stall;//分支等待信号，表示分支相关逻辑正在 stall（比如等待跳转目标地址）
 wire br_taken;//是否采取分支跳转:是否要跳转到br_target
 wire [31:0] br_target;//若跳转，下一条指令地址就是这个
@@ -57,7 +57,7 @@ end
 assign seq_pc        = fs_pc + 3'h4;
 assign nextpc        = br_taken ? br_target : seq_pc;
 assign inst_sram_en  = to_fs_valid && (fs_allow_in || br_stall);
-assign if_stall      = ~is_if_read;//仲裁发力
+//assign if_stall      = ~is_if_read;//仲裁发力
 assign inst_sram_addr = nextpc;
 assign fs_inst       = inst_sram_rdata;
 assign inst_sram_we  = 4'b0000;

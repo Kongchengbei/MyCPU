@@ -20,7 +20,7 @@ module mem_stage(
 
 
 );
-wire mem_stall;
+//wire mem_stall;
 reg [31:0] ms_pc;
 reg ms_res_from_mem;
 reg ms_gr_we;
@@ -65,5 +65,5 @@ assign ms_ws_bus = {
     ms_dest,          // 36:32
     ms_final_result   // 31:0
 };
-assign mem_stall = ~is_mem_read;
+//assign mem_stall = ~is_mem_read;
 endmodule

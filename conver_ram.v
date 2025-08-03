@@ -30,7 +30,7 @@ assign ram_addr = cpu_sram_addr[21:2];
 
 assign ram_data = ~ram_we_n ? cpu_sram_wdata : 32'hz;
 
-always @(posedge clk or negedge resetn) begin
+always @(posedge clk or posedge resetn) begin
     if (resetn) begin
         cpu_sram_rdata <= 32'hz;
     end else if (~ram_oe_n) begin

@@ -1,9 +1,9 @@
-module mycpu_top(
-    input  wire        clk_11M0592,
+//module mycpu_top(
+  //  input  wire        clk_11M0592,
     /*异步信号如果直接进入同步时序逻辑，
     会有亚稳态问题（metastability）。
     所以用一个寄存器（reset）在时钟上升沿将其采样同步化*/
-    input  wire        reset_btn,//resetn 通常来自外部按键或电路，是异步信号(不受clk限制）
+    //input  wire        reset_btn,//resetn 通常来自外部按键或电路，是异步信号(不受clk限制）
  /*   // inst sram interface 指令存储接口（instruction SRAM）
     output wire        inst_sram_en,//使能信号，为 1 时表示要发起一个取指请求
     output wire [ 3:0] inst_sram_we,//写使能信号，若全为0表示只读（用于取指），不为零表示要写入数据
@@ -52,7 +52,7 @@ module mycpu_top(
     input reg [31:0] ext_wdata,
     output wire [31:0] ext_rdata
     */
-);
+//);
 /*
 //异步低电平有效复位信号（resetn），同步地转化为同步高电平有效复位信号（reset）
 reg         reset;
@@ -328,8 +328,8 @@ wire [37:0] es_fwd_bus;
 wire [37:0] ms_fwd_bus;
 wire [37:0] ws_fwd_bus;
 
-wire is_if_read; //仲裁器是否允许取指
-wire is_mem_read; //仲裁器是否允许访问内存
+//wire is_if_read; //仲裁器是否允许取指
+//wire is_mem_read; //仲裁器是否允许访问内存
 //核之间传递的信号
 wire [31:0] data_sram_rdata;
 wire [31:0] data_sram_wdata;
@@ -353,8 +353,8 @@ if_stage fs(
     .inst_sram_wdata(inst_sram_wdata),
     .inst_sram_rdata(inst_sram_rdata),
     .fs_ds_bus      (fs_ds_bus      ),
-    .fs_to_ds_valid (fs_to_ds_valid ),
-    .is_if_read     (is_if_read     )
+    .fs_to_ds_valid (fs_to_ds_valid )
+    //.is_if_read     (is_if_read     )
 );
 
 id_stage ds(
@@ -409,7 +409,7 @@ mem_stage ms(
     .ms_ws_bus      (ms_ws_bus      ),
     .ms_dest        (ms_dest        ),
     .ms_fwd_bus     (ms_fwd_bus     ),
-    .is_mem_read    (is_mem_read    ),
+    //.is_mem_read    (is_mem_read    ),
     .data_sram_en   (data_sram_en   ),
     .data_sram_we   (data_sram_we   ),
     .data_sram_addr (data_sram_addr ),
@@ -437,8 +437,8 @@ wb_stage ws(
 
 // inst ram <-> base ram
 conver_ram inst_conver_ram(
-    .clk              (my_clk   ),
-    .resetn           (my_reset ),
+    .clk              (clk_11M0592   ),
+    .resetn           (reset_btn ),
 
     .cpu_sram_en      (inst_sram_en   ),
     .cpu_sram_we      (inst_sram_we   ),
@@ -455,8 +455,8 @@ conver_ram inst_conver_ram(
 );
 // data ram <-> ext ram
 conver_ram data_conver_ram(
-    .clk              (my_clk    ),
-    .resetn           (my_reset  ),
+    .clk              (clk_11M0592  ),
+    .resetn           (reset_btn  ),
 
     .cpu_sram_en      (data_sram_en   ),
     .cpu_sram_we      (data_sram_we   ),
