@@ -1,5 +1,5 @@
 module mycpu_top(
-    input  wire        clk_11M0592,
+    input  wire        clk_50M,
     /*异步信号如果直接进入同步时序逻辑，
     会有亚稳态问题（metastability）。
     所以用一个寄存器（reset）在时钟上升沿将其采样同步化*/
@@ -55,7 +55,7 @@ module mycpu_top(
 );
 //异步低电平有效复位信号（resetn），同步地转化为同步高电平有效复位信号（reset）
 reg         reset;
-always @(posedge clk) reset <= ~reset_btn; //resetn:低电平复位有效信号
+always @(posedge clk_50M) reset <= reset_btn; //resetn:低电平复位有效信号
 //字节使能
 assign base_ram_be_n = 4'b0000; //BaseRAM字节使能，低有效
 assign ext_ram_be_n = 4'b0000; //ExtRAM字节使能，低有效
@@ -107,7 +107,7 @@ wire [31:0] inst_sram_en;
 wire [31:0] inst_sram_we;
 
 if_stage fs(
-    .clk(clk),
+    .clk(clk_50M),
     .reset(reset),
     .ds_allow_in(ds_allow_in),
     .br_bus(br_bus),
@@ -122,7 +122,7 @@ if_stage fs(
 );
 
 id_stage ds(
-   .clk(clk),
+   .clk(clk_50M),
    .reset(reset),
    .es_allow_in(es_allow_in),
    .fs_to_ds_valid(fs_to_ds_valid),
@@ -143,7 +143,7 @@ id_stage ds(
 );
 
 exe_stage es(
-    .clk(clk),
+    .clk(clk_50M),
     .reset(reset),
     .ms_allow_in(ms_allow_in),
     .ds_to_es_valid(ds_to_es_valid),
@@ -162,7 +162,7 @@ exe_stage es(
 );
 
 mem_stage ms(
-    .clk(clk),
+    .clk(clk_50M),
     .reset(reset),
     .ws_allow_in(ws_allow_in),
     .ms_allow_in(ms_allow_in),
@@ -183,7 +183,7 @@ mem_stage ms(
 );
 
 wb_stage ws(
-    .clk(clk),
+    .clk(clk_50M),
     .reset(reset),
     .ws_allow_in(ws_allow_in),
     .ms_to_ws_valid(ms_to_ws_valid),
@@ -199,7 +199,7 @@ wb_stage ws(
     .ws_fwd_bus(ws_fwd_bus)
 );
 z_stage z_stage(
-    .clk(clk),
+    .clk(clk_50M),
     .reset(reset),
     //if
     .inst_sram_en(inst_sram_en),

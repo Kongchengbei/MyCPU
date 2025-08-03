@@ -77,11 +77,12 @@ wire inst_add_w, inst_sub_w, inst_slt, inst_sltu, inst_nor, inst_and, inst_or, i
 wire inst_slli_w, inst_srli_w, inst_srai_w, inst_addi_w, inst_ld_w, inst_st_w;
 wire inst_jirl, inst_b, inst_bl, inst_beq, inst_bne, inst_lu12i_w;
 
-wire need_ui5, need_si12, need_si16, need_si20, need_si26;
-
+wire need_ui5, need_si20, need_si26;
+//wire  need_si12, need_si16;
+/*
 wire [31:0] alu_src1;
 wire [31:0] alu_src2;
-
+*/
 assign op_31_26 = ds_inst[31:26];
 assign op_25_22 = ds_inst[25:22];
 assign op_21_20 = ds_inst[21:20];
@@ -161,8 +162,8 @@ assign alu_op[10] = inst_srai_w;
 assign alu_op[11] = inst_lu12i_w;
 
 assign need_ui5 = inst_slli_w | inst_srli_w | inst_srai_w;
-assign need_si12 = inst_addi_w | inst_ld_w | inst_st_w;
-assign need_si16 = inst_jirl | inst_beq | inst_bne;
+//assign need_si12 = inst_addi_w | inst_ld_w | inst_st_w;
+//assign need_si16 = inst_jirl | inst_beq | inst_bne;
 assign need_si20 = inst_lu12i_w;
 assign need_si26 = inst_b | inst_bl;
 assign src2_is_4 = inst_jirl | inst_bl;

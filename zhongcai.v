@@ -20,19 +20,19 @@ module z_stage(
 
 //Baseram
 output wire base_ram_ce_n, //BaseRAM片选，低有效
-output reg base_en,
-output reg base_we,
+output wire base_en,
+output wire base_we,
 output reg [31:0] base_addr,
 output reg [31:0] base_wdata,
 input wire [31:0] base_rdata,
 
 //Extram
 output wire ext_ram_ce_n, //ExtRAM片选，低有效
-output reg ext_en,
-output reg ext_we,
+output wire ext_en,
+output wire ext_we,
 output reg [31:0] ext_addr,
 output reg [31:0] ext_wdata,
-input wire [31:0] ext_rdata,
+input wire [31:0] ext_rdata
 
 );
 
@@ -52,42 +52,42 @@ wire is_ext  = (addr >= 32'h80400000) && (addr <= 32'h807FFFFF);
 assign base_ram_ce_n = ~(is_base && (is_if_read || is_mem_read || is_write));
 assign ext_ram_ce_n  = ~(is_ext  && (is_if_read || is_mem_read || is_write)); 
 //读使能
-assign base_ram_oe_n = ~(is_base && (is_if_read || is_mem_read));
-assign ext_ram_oe_n  = ~(is_ext  && (is_if_read || is_mem_read));
+assign base_en = ~(is_base && (is_if_read || is_mem_read));
+assign ext_en  = ~(is_ext  && (is_if_read || is_mem_read));
 //写使能
-assign base_ram_we_n = ~(is_base && is_write);
-assign ext_ram_we_n  = ~(is_ext  && is_write);
+assign base_we  = ~(is_base && is_write);
+assign ext_we   = ~(is_ext  && is_write);
 
 //低有效
-always @(posedge clk or posedge reset) begin
+always @(posedge clk) begin
     //写
     if (reset) begin
-            base_en         <= 1'b1;             
-            base_we         <= 1'b1;
+            //base_en         <= 1'b1;             
+            //base_we         <= 1'b1;
             base_addr       <= 32'bz;
             base_wdata      <= 32'bz;
-            ext_en          <= 1'b1;
-            ext_we          <= 1'b1;
+            //ext_en          <= 1'b1;
+            //ext_we          <= 1'b1;
             ext_addr        <= 32'bz;
             ext_wdata       <= 32'bz;
             inst_sram_rdata <= 0;
             data_sram_rdata <= 0;
     end else begin
         if (is_base) begin
-            base_en    <= 1'b0;
-            base_we    <= we;
+            //base_en    <= 1'b0;
+            //base_we    <= we;
             base_addr  <= addr;
             base_wdata <= wdata;
-            ext_en     <= 1'b1; 
+            //ext_en     <= 1'b1; 
         end else if (is_ext) begin
-            ext_en     <= 1'b0;
-            ext_we     <= we;
+            //ext_en     <= 1'b0;
+            //ext_we     <= we;
             ext_addr   <= addr;
             ext_wdata  <= wdata;
-            base_en    <= 1'b1;
+            //base_en    <= 1'b1;
         end else begin
-            base_en    <= 1'b1;
-            ext_en     <= 1'b1;
+            //base_en    <= 1'b1;
+            //ext_en     <= 1'b1;
         end
     end
         //读
